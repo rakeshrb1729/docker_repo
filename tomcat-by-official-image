@@ -1,0 +1,13 @@
+FROM tomcat:latest
+
+RUN cp -R /usr/local/tomcat/webapps.dist/* /usr/local/tomcat/webapps/
+RUN echo '<role rolename="manager-gui"/>' >> /usr/local/tomcat/conf/tomcat-users.xml
+RUN echo '<tomcat-users>\n\
+<user username="tomcat" password="tomcat" roles="manager-gui"/>\n\
+</tomcat-users>' > /usr/local/tomcat/conf/tomcat-users.xml
+RUN sed -i '21i\<!--' /usr/local/tomcat/webapps/manager/META-INF/context.xml
+RUN sed -i '24i\-->' /usr/local/tomcat/webapps/manager/META-INF/context.xml
+
+EXPOSE 8080
+
+CMD ["catalina.sh", "run"]
