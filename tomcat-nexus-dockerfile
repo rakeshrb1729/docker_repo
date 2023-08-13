@@ -1,0 +1,33 @@
+FROM ubuntu:latest
+
+ENV NEXUS_URL="http://172.31.36.227:8081"
+ENV NEXUS_PATH="repository/Javawebapp/com/maven/bt/SimpleWebApplication/9.1.14/SimpleWebApplication-9.1.14.war"
+ENV NEXUS_REPO_USER="admin"
+ENV NEXUS_REPO_PASS="admin123"
+
+RUN apt update
+RUN apt install openjdk-11-jdk -y
+RUN apt install wget -y
+RUN apt install unzip -y
+RUN apt install vim -y
+
+RUN wget -P /opt/ https://dlcdn.apache.org/tomcat/tomcat-9/v9.0.78/bin/apache-tomcat-9.0.78.zip
+RUN unzip /opt/apache-tomcat-9.0.78.zip -d /opt
+RUN mv /opt/apache-tomcat-9.0.78 /opt/tomcat
+
+RUN echo '<role rolename="manager-gui"/>' >> /opt/tomcat/conf/tomcat-users.xml
+RUN echo '<tomcat-users>\n\
+<user username="tomcat" password="tomcat" roles="manager-gui"/>\n\
+</tomcat-users>' > /opt/tomcat/conf/tomcat-users.xml
+
+RUN sed -i '21i\<!--' /opt/tomcat/webapps/manager/META-INF/context.xml
+RUN sed -i '24i\-->' /opt/tomcat/webapps/manager/META-INF/context.xml
+
+ENV PATH="/opt/tomcat/bin:${PATH}"
+
+RUN wget --user=$NEXUS_REPO_USER --password=$NEXUS_REPO_PASS "$NEXUS_URL/$NEXUS_PATH" -P /opt/tomcat/webapps/
+
+EXPOSE 8080
+RUN chmod +x /opt/tomcat/bin/*.sh
+
+CMD ["/opt/tomcat/bin/catalina.sh","run"]
